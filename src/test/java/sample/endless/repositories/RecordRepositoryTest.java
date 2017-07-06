@@ -17,17 +17,21 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.hamcrest.Matchers.is;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest()
 public class RecordRepositoryTest {
 
-    static final int NUMBER_OF_RECORDS = 20000;
+    static final int NUMBER_OF_RECORDS = 100000;
 
     @Autowired
     RecordRepository recordRepository;
 
     @Test
+    @Transactional
     public void readAll_the_object_is_already_closed() {
         // setup
         System.out.println("Prepare all data.");
@@ -40,7 +44,7 @@ public class RecordRepositoryTest {
         // -- SHOULD NOT FAIL
         try (final Stream<Record> stream = recordRepository.readAllByIdNotNull()) {
             stream.forEach(record -> {
-                if (record.getId() % 250 == 0) {
+                if (record.getId() % 1000L == 0L) {
                     System.out.println("Handling Record No: " + record.getId());
                 }
                 final long sum = record.getWrappedValues().stream()
@@ -51,7 +55,7 @@ public class RecordRepositoryTest {
         }
 
         // then
-        Assert.assertEquals(15L * NUMBER_OF_RECORDS, counter);
+        Assert.assertThat(15L * NUMBER_OF_RECORDS, is(counter.get()));
     }
 
     private void prepareAllData() {
